@@ -1,6 +1,6 @@
 ``` r
 knitr::opts_chunk$set(
-  fig.path = "Imágenes_del_Documento/Imágen-"
+  fig.path = "figure/unnamed-chunk-"
 )
 ```
 
@@ -140,7 +140,7 @@ ggplot(totalSteps, aes(x = steps)) +
     ## Warning: Removed 8 rows containing non-finite outside the scale range
     ## (`stat_bin()`).
 
-![](Imágenes_del_Documento/Imágen-unnamed-chunk-6-1.png)
+![](figure/unnamed-chunk-unnamed-chunk-5-1.png)
 
 1.  Calculate and report the mean and median of the total number of
     steps taken per day
@@ -183,7 +183,7 @@ ggplot(intervalDT, aes(x = interval, y = steps)) +
   scale_x_continuous(breaks = seq(0, max(intervalDT$interval), by = 200))  # Mejora la legibilidad del eje X
 ```
 
-![](Imágenes_del_Documento/Imágen-unnamed-chunk-8-1.png)
+![](figure/unnamed-chunk-unnamed-chunk-7-1.png)
 
 1.  Which 5-minute interval, on average across all the days in the
     dataset, contains the maximum number of steps?
@@ -262,7 +262,7 @@ ggplot(total_steps_per_day_filled, aes(x = total_steps)) +
   )
 ```
 
-![](Imágenes_del_Documento/Imágen-unnamed-chunk-13-1.png)
+![](figure/unnamed-chunk-unnamed-chunk-12-1.png)
 
 ``` r
 # Calculate the mean and median of total steps per day (after imputing)
@@ -332,4 +332,4 @@ ggplot(avg_steps_by_day_type, aes(x = interval, y = avg_steps)) +
   )
 ```
 
-![](Imágenes_del_Documento/Imágen-unnamed-chunk-15-1.png)
+![](figure/unnamed-chunk-unnamed-chunk-14-1.png)
