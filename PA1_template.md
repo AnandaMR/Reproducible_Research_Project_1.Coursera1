@@ -232,8 +232,19 @@ head(strategy)
     the missing data filled in.
 
 ``` r
+# Calcular la media por intervalo
+interval_means <- activity_data %>%
+  group_by(interval) %>%
+  summarise(mean_steps = mean(steps, na.rm = TRUE))
+
+# Imputar valores faltantes usando la media por intervalo
 activity_data_filled <- activity_data %>%
-  mutate(steps = ifelse(is.na(steps), median(steps, na.rm = TRUE), steps))
+  left_join(interval_means, by = "interval") %>%
+  mutate(
+    steps_imputed = ifelse(is.na(steps), TRUE, FALSE),  # Marcar si es imputado
+    steps = ifelse(is.na(steps), mean_steps, steps)     # Imputar valores
+  ) %>%
+  select(-mean_steps)
 ```
 
 1.  Make a histogram of the total number of steps taken each day and
@@ -243,22 +254,66 @@ activity_data_filled <- activity_data %>%
     on the estimates of the total daily number of steps?
 
 ``` r
-# Calculate total steps per day after imputing missing data
+# Check the number of zeros in the original dataset before and after imputation
+sum(activity_data$steps == 0, na.rm = TRUE)          # Before imputation
+```
+
+    ## [1] 11014
+
+``` r
+sum(activity_data_filled$steps == 0, na.rm = TRUE)   # After imputation
+```
+
+    ## [1] 11166
+
+``` r
+# Calculate total steps per day, and flag if imputation occurred for any steps on that day
 total_steps_per_day_filled <- activity_data_filled %>%
   group_by(date) %>%
-  summarise(total_steps = sum(steps, na.rm = TRUE))  # na.rm = TRUE to ignore any remaining NAs
+  summarise(
+    total_steps = sum(steps, na.rm = TRUE),
+    imputed = any(steps_imputed)  # TRUE if there was at least one imputed value
+  )
 
-# Create a histogram of the total steps per day (after imputing)
-ggplot(total_steps_per_day_filled, aes(x = total_steps)) +
-  geom_histogram(fill = "pink", color = "black", binwidth = 1000, alpha = 0.7) +
-  labs(title = "Daily Steps Distribution", x = "Steps", y = "Frequency") +
+# Calculate total steps per day for both original and imputed datasets
+total_steps_original <- activity_data %>%
+  group_by(date) %>%
+  summarise(total_steps = sum(steps, na.rm = TRUE), .groups = 'drop') %>%
+  mutate(dataset = "Original Data")  # Label for the legend
+
+total_steps_imputed <- activity_data_filled %>%
+  group_by(date) %>%
+  summarise(total_steps = sum(steps), .groups = 'drop') %>%
+  mutate(dataset = "Imputed Data")  # Label for the legend
+
+# Combine both datasets for plotting
+combined_data <- bind_rows(total_steps_original, total_steps_imputed)
+
+# Create an overlaid histogram comparing total steps per day before and after imputing missing data
+ggplot(combined_data, aes(x = total_steps, fill = dataset)) +
+  geom_histogram(position = "identity", color = "black", binwidth = 1000, alpha = 0.6) +
+  
+  # Customize the legend
+  scale_fill_manual(
+    values = c("Original Data" = "grey", "Imputed Data" = "red"),
+    name = "Dataset",  # Legend title
+    labels = c( "Imputed Data (Red)", "Original Data (Grey)")
+  ) +
+  
+  # Titles and axis labels
+  labs(
+    title = "Total Steps Taken Each Day",
+    x = "Number of Steps",
+    y = "Frequency"
+  ) +
+  
+  # Visual theme
   theme_minimal(base_size = 14) +
   theme(
     plot.title = element_text(hjust = 0.5, face = "bold", size = 16),
-    axis.title = element_text(face = "bold"),
-    axis.text = element_text(size = 12),
-    panel.grid.major = element_line(color = "gray80"),
-    panel.grid.minor = element_blank()
+    legend.title = element_text(face = "bold"),
+    legend.position = "top",  # Place legend at the top of the plot
+    legend.background = element_rect(fill = "white", color = "black")
   )
 ```
 
@@ -273,13 +328,13 @@ median_steps_filled <- median(total_steps_per_day_filled$total_steps, na.rm = TR
 mean_steps_filled
 ```
 
-    ## [1] 9354.23
+    ## [1] 10766.19
 
 ``` r
 median_steps_filled
 ```
 
-    ## [1] 10395
+    ## [1] 10766.19
 
 # Are there differences in activity patterns between weekdays and weekends?
 
